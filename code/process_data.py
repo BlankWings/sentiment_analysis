@@ -64,25 +64,44 @@ class Dataprocess:                              # 数据处理的类
                 file.writelines(score + " " + new_comment + "\n")
             print("已经对分词后评论去停用词，用时：{:.3f}s!!!!".format(time() - st))
 
-class genDataFrame:                                         # 对处理后的文件使用pandas的DataFrame保存，并统计一些信息
-    def __init__(self):
-        pass
+    @staticmethod
+    def txt2csv(txt_file, csv_file):                                    # 使用txt文件构建DataFrame，然后写入csv
+        # DataFrame的内容包括：labels(评论标签), lenths(评论的单词数), contents(评论内容)
+        with open(txt_file, "r", encoding="utf-8") as file:
+            info_list = file.read().splitlines()                        # 获得原始文件每一行信息组成的列表
+            labels_list = []; lenths_list = []; contents_list = []      # 初始化labels(评论标签), lenths(评论的单词数), contents(评论内容)
+            for info in info_list:
+                label = info.split()[0]                                 # 获取标签
+                content = info.replace(label, "").strip()               # 获取评论
+                lenth = len(content.split())                            # 获取评论长度
+                labels_list.append(label)
+                lenths_list.append(lenth)
+                contents_list.append(content)
+        # 生成DataFrame，并写入csv文件
+        df = pd.DataFrame({"labels":labels_list,"lenths":lenths_list,"contents":contents_list})
+        df.to_csv(csv_file)
+        print("已经生成{}文件!!!!".format(csv_file.split("/")[-1]))
 
     @staticmethod
-    def txt2csv(txt_file, csv_file):                        # 使用txt文件构建DataFrame，然后写入csv
-        # DataFrame的内容包括：labels(评论标签), lenths(评论的单词数), contents(评论内容)
+    def statistics_csv(csv_file):                                        # 生成评论的统计信息
+        df = pd.read_csv(csv_file)
+        print("df.info如下：")
+        print(df.info())
+        print("df.describe如下：")
+        print(df.describe())
 
 
 
 if __name__ == '__main__':
     # 进行数据预处理
-    Dataprocess.unique_comments(RAW_DATA_FILE, UNIQUE_COMMENT_FILE)                         # 评论去重
-    Dataprocess.seg_comments(UNIQUE_COMMENT_FILE, SEG_COMMENT_FILE)                         # 产生分词后文件
-    Dataprocess.finish_comments(SEG_COMMENT_FILE, STOPWORDS_FILE, FINISH_COMMENT_FILE)      # 对分词后文件去停用词
+    # Dataprocess.unique_comments(RAW_DATA_FILE, UNIQUE_COMMENT_FILE)                         # 评论去重
+    # Dataprocess.seg_comments(UNIQUE_COMMENT_FILE, SEG_COMMENT_FILE)                         # 产生分词后文件
+    # Dataprocess.finish_comments(SEG_COMMENT_FILE, STOPWORDS_FILE, FINISH_COMMENT_FILE)      # 对分词后文件去停用词
     # 生成DataFrame并保存
-
-
-
+    #Dataprocess.txt2csv(SEG_COMMENT_FILE, SEG_CSV)                                           # 分词文件对应的csv文件
+    #Dataprocess.txt2csv(FINISH_COMMENT_FILE, FINISH_CSV)                                     # 去停用词文件的csv文件
+    # 生成统计信息
+    Dataprocess.statistics_csv(SEG_CSV)
 
 
 
